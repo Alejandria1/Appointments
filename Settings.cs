@@ -26,16 +26,18 @@ namespace Appointments
         // Método para cargar configuraciones predeterminadas.
         private void LoadDefaultSettings()
         {
-            AppointmentDuration = TimeSpan.FromMinutes(120);
-            DefaultStartTime = new TimeOnly(9, 0);
-            DefaultLunchTime = new TimeOnly(15, 0);
-            DefaultFinishTime = new TimeOnly(20, 0);
+            AppointmentDuration = new TimeSpan(2, 0, 0);
+            LunchDuration = new TimeSpan(1, 0, 0);
+            DefaultStartTime = new TimeSpan(9, 0, 0);
+            DefaultLunchTime = new TimeSpan(15, 0, 0);
+            DefaultFinishTime = new TimeSpan(20, 0, 0);
         }
 
         // Propiedades de configuración.
         public TimeSpan AppointmentDuration { get; set; }
-        public TimeOnly DefaultStartTime { get; set; }
-        public TimeOnly DefaultLunchTime { get; set; }
-        public TimeOnly DefaultFinishTime { get; set; }
+        public TimeSpan DefaultStartTime { get; set; }
+        public TimeSpan DefaultLunchTime { get; set; }
+        public TimeSpan DefaultFinishTime { get; set; }
+        public TimeSpan LunchDuration { get; set; }
     }
 }

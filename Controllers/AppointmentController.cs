@@ -1,7 +1,8 @@
 using Appointments.Models;
+using Appointments.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
+using System;
+using System.Data;
 
 namespace Appointments.Controllers
 {
@@ -11,34 +12,55 @@ namespace Appointments.Controllers
     {
         
         private readonly ILogger<AppointmentController> _logger;
-        private readonly AppointmentsDBContext _appointmentsDbContext;
+        private readonly Database _db;
         private IAvailableTimesDay _availableTimesDay;
 
-        public AppointmentController(AppointmentsDBContext appointmentsDBContext, ILogger<AppointmentController> logger, IAvailableTimesDay availableTimesDay)
+        public AppointmentController(Database db, ILogger<AppointmentController> logger, IAvailableTimesDay availableTimesDay)
         {
-            _appointmentsDbContext = appointmentsDBContext;
+            _db = db;
             _logger = logger;
             _availableTimesDay = availableTimesDay;
         }
 
-        [HttpGet(Name = "GetAvailableTimes")]
-        public List<TimeOnly> Get(DateOnly appointmentDate)
+        [HttpGet(Name = "GetDaySlots")]
+        public IActionResult Get(String appointmentDate) 
         {
+            using (IDbConnection dbConnection = _db.CreateConnection())
+            {
+                dbConnection.Open();
+                using (var command = dbConnection.CreateCommand())
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.CommandText = "todaysAppointments";
 
-            List<TimeOnly> apptmsCurrent = new List<TimeOnly>();
+                    var parameter = command.CreateParameter();
+                    parameter.ParameterName = "@dayparam";
+                    parameter.Value = appointmentDate;
+                    parameter.DbType = DbType.String;
+                    command.Parameters.Add(parameter);
 
-            List<TimeOnly> apptmsAvailable = new List<TimeOnly>();
+                    using (var reader = command.ExecuteReader())
+                    {
+                        var results = new List<Appointment>();
+                        while (reader.Read())
+                        {
+                            results.Add(new Appointment
+                            {
+                                appointment_id = reader.GetInt32(0),
+                                appointment_time = (TimeSpan)reader.GetValue(1),
+                                is_new = reader.GetBoolean(2),
+                                style_name = reader.GetString(3),
+                                emp_name = reader.GetString(4),
+                            });
+                        }
 
-            var appointments = _appointmentsDbContext.Appointments
-                .FromSqlRaw($"SELECT appointment_id, appointment_date,appointment_time, is_new, employee_id, style_id from appointments where appointment_date like '{appointmentDate}'")
-                .ToList(); //corregir a solo sacar los times
-            appointments.ForEach(appointment => { apptmsCurrent.Add(appointment.appointment_time); });
+                        dbConnection.Close();
 
-            apptmsAvailable = _availableTimesDay.GetAvailableSlots(apptmsCurrent);
-           //necesito sacar la lista de los times disponibles del dia, y quitar esos q ya estan ocupados
-
-            
-            return apptmsAvailable;
+                        results = _availableTimesDay.GetFullDayAppointments(results);
+                        return Ok(results);
+                    }
+                }
+            }
         }
     }
 }
