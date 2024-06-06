@@ -37,28 +37,32 @@ namespace Appointments.Services
             var settings = Settings.Instance;
             List<TimeSpan> allSlots = GetAllSlots();
             var fullDayApptms = new List<Appointment>();
+            bool slotAdded = false;
 
             if (dbresults.Count > 0)
             {
                 foreach (var slot in allSlots)
                 {
+                    slotAdded = false;
                     foreach (var appointment in dbresults)
                     {
                         if (appointment.appointment_time == slot)
                         {
                             fullDayApptms.Add(appointment);
+                            slotAdded = true;
                         }
-                        else
-                        {
-                            fullDayApptms.Add(new Appointment
-                            {
-                                appointment_id = 0,
-                                appointment_time = slot,
-                                style_name = slot == settings.DefaultLunchTime ? "LunchTime" : "free"
-                            });
-                        }
-                    }
 
+                    }
+                    if (!slotAdded)
+                    {
+
+                        fullDayApptms.Add(new Appointment
+                        {
+                            appointment_id = 0,
+                            appointment_time = slot,
+                            style_name = slot == settings.DefaultLunchTime ? "LunchTime" : "free"
+                        });
+                    }
 
                 }
             }

@@ -34,7 +34,7 @@ namespace Appointments.Controllers
                 using (var command = dbConnection.CreateCommand())
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.CommandText = "todaysAppointments";
+                    command.CommandText = "daysAppointments";
 
                     var parameter = command.CreateParameter();
                     parameter.ParameterName = "@dayparam";
@@ -53,7 +53,7 @@ namespace Appointments.Controllers
                                 appointment_time = (TimeSpan)reader.GetValue(1),
                                 is_new = reader.GetBoolean(2),
                                 style_name = reader.GetString(3),
-                                emp_name = reader.GetString(4),
+                                employee_id = reader.GetInt32(4),
                             });
                         }
 

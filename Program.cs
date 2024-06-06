@@ -10,6 +10,17 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 // Register the Database class
 builder.Services.AddSingleton<Database>();
 
+//Add Cors
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:3000");
+                      });
+});
+
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IAvailableTimesDay, AvailableTimesDay>();
@@ -28,6 +39,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseHttpsRedirection();
 
